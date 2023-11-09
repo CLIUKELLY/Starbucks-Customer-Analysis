@@ -106,18 +106,33 @@ transaction_value_per_person = transcript.groupby('person')['amount'].sum()
 transaction_value_per_person_df = transaction_value_per_person.reset_index(name='transaction_value_amount')
 transaction_value_per_person_df.shape
 
-# Predictor 3: 
+# Predictor 3: Offer received number per person
+offer_received_data = transcript[transcript['event'] == 'offer received']
+offer_received_per_person = offer_received_data.groupby('person').size()
+offer_received_per_person_df = offer_received_per_person.reset_index(name='offer_received_count')
+offer_received_per_person_df.shape
+
+# Predictor 4: Offer reviewed number per person
+offer_viewed_data = transcript[transcript['event'] == 'offer viewed']
+offer_viewed_per_person = offer_viewed_data.groupby('person').size()
+offer_viewed_per_person_df = offer_viewed_per_person.reset_index(name='offer_viewed_count')
+offer_viewed_per_person_df.shape
+
+# Merge the predictors into a single DataFrame on the 'person' column
+predictors_df = offer_received_per_person_df.merge(offer_viewed_per_person_df, on='person', how='left').merge(offer_completed_per_person_df, on='person', how='left').merge(transaction_value_per_person_df, on='person', how='left')
+predictors_df.fillna(0, inplace=True)
+
+# Predictor 5: offer completion rate per person (completed/received)
+predictors_df['offer_completion_rate'] = predictors_df['offer_completed_count'] / predictors_df['offer_received_count']
+predictors_df['offer_completion_rate'].fillna(0, inplace=True)
+
 
 # =============================================================================
 # Run K-means to segment customer
 # =============================================================================
-
-# Merge the predictors into a single DataFrame on the 'person' column
-predictors_df = offer_completed_per_person_df.merge(transaction_value_per_person_df, on='person', how='outer')
-predictors_df.fillna(0, inplace=True)
 X = predictors_df
 
-numerical_features = predictors_df[['offer_completed_count', 'transaction_value_amount']]
+numerical_features = predictors_df.drop(['person'], axis=1)
 
 from sklearn.preprocessing import StandardScaler
 scaler = StandardScaler()
