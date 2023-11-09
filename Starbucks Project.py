@@ -128,7 +128,7 @@ predictors_df['offer_completion_rate'].fillna(0, inplace=True)
 
 
 # =============================================================================
-# Run K-means to segment customer
+# Find optimized K
 # =============================================================================
 X = predictors_df
 
@@ -140,23 +140,66 @@ X_std = scaler.fit_transform(numerical_features)
 X_std_df = pd.DataFrame(X_std, columns=numerical_features.columns)
 
 from sklearn.cluster import KMeans
-kmeans = KMeans(n_clusters=4, random_state=42)
+from sklearn.metrics import silhouette_score
+
+# Determine the optimal number of clusters using Elbow Method and Silhouette Score
+wcss = []
+silhouette_scores = []
+K_to_try = range(2, 11)
+
+for k in K_to_try:
+    kmeans = KMeans(n_clusters=k, random_state=5)
+    kmeans.fit(X_std_df)
+    wcss.append(kmeans.inertia_)
+    silhouette_scores.append(silhouette_score(X_std_df, kmeans.labels_))
+
+# Plot the results of WCSS (Elbow Method)
+plt.figure(figsize=(12, 5))
+plt.subplot(1, 2, 1)
+plt.plot(K_to_try, wcss, marker='o')
+plt.title('Elbow Method For Optimal k')
+plt.xlabel('Number of clusters')
+plt.ylabel('WCSS')
+
+# Plot the results of Silhouette Scores
+plt.subplot(1, 2, 2)
+plt.plot(K_to_try, silhouette_scores, marker='o')
+plt.title('Silhouette Score For Optimal k')
+plt.xlabel('Number of clusters')
+plt.ylabel('Silhouette Score')
+
+plt.tight_layout()
+plt.show()
+
+# Results
+optimal_k_elbow = K_to_try[wcss.index(min(wcss, key=lambda x: abs(x - (x-1))))]
+optimal_k_silhouette = K_to_try[silhouette_scores.index(max(silhouette_scores))]
+
+optimal_k_elbow, optimal_k_silhouette, silhouette_scores
+
+# =============================================================================
+# Run K-means to segment customer
+# =============================================================================
+
+kmeans = KMeans(n_clusters= optimal_k_elbow, random_state=5)
 cluster_labels = kmeans.fit_predict(X_std_df)
 
 # Add the cluster labels to the original predictors_df DataFrame
 predictors_df['cluster'] = cluster_labels
+centroids = kmeans.cluster_centers_
+centroids_table = pd.DataFrame(scaler.inverse_transform(centroids), columns=numerical_features.columns)
+centroids_table
 
-# Plot the clusters
-sns.scatterplot(data=predictors_df, x='offer_completed_count', y='transaction_value_amount', hue='cluster')
-plt.title('K-means Clustering with 4 clusters')
+# =============================================================================
+# Display clusters
+# =============================================================================
+# offer_completed_count vs. transaction_value_amount
+plt.figure(figsize=(10, 6))
+sns.scatterplot(data=predictors_df, x='offer_completed_count', y='transaction_value_amount', hue='cluster', palette='viridis')
 plt.xlabel('Offer Completed Count')
 plt.ylabel('Transaction Value Amount')
+plt.legend(title='Cluster')
 plt.show()
-
-
-
-
-
 
 
 
