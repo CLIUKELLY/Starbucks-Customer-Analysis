@@ -29,6 +29,9 @@ Install these libraries using pip:
 
 ## Usage
 To execute the scripts, run the following commands:
+- python eda.py
+- python clustering.py
+- python classification.py
 
 ## Contributing
 Contributions to this project are welcome. Please read `CONTRIBUTING.md` for details on our code of conduct and the process for submitting pull requests.
