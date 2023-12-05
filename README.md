@@ -5,9 +5,9 @@ This project aims to analyze customer behavior in response to promotional activi
 
 ## Data
 The dataset consists of three main components:
-1. **Transaction Data**: Records of customer purchases at Starbucks.
-2. **Demographic Data**: Information about the customers, including age, gender, income, etc.
-3. **Push Notification Data**: Details of promotional activities communicated to customers through the app.
+1. **portfolio.csv**: Contains the IDs and metadata (duration, type, etc.) of each promotional offer.
+2. **profile.csv**: Demographic data of each customer.
+3. **transcript.csv**: Records of transactions, received offers, viewed offers, and completed offers.
 
 ## Files in the Repository
 The project comprises three main code files:
